@@ -87,6 +87,119 @@ Nguyen Trung Tri Tinh
 Course: SE07201 - Data Structures and Algorithms
 
 
+package com.Tinhntt.AssignmentStudent;
+
+import java.util.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+public class StudentManager {
+    private ArrayList<Student> students = new ArrayList<>();
+    private HashMap<String, Student> studentMap = new HashMap<>();
+    private List<String> logs = new ArrayList<>();
+
+    // Add a new student
+    public void addStudent(String id, String name, double score) {
+        if (studentMap.containsKey(id)) {
+            System.out.println("Student ID already exists.");
+            return;
+        }
+        Student student = new Student(id, name, score);
+        students.add(student);
+        studentMap.put(id, student);
+        System.out.println("Student added successfully.");
+        logs.add("Added student: " + name + " (ID: " + id + "), Score: " + score);
+    }
+
+    // Delete a student by ID
+    public void deleteStudent(String id) {
+        Student student = studentMap.remove(id);
+        if (student == null) {
+            System.out.println("Student not found.");
+            return;
+        }
+        students.remove(student);
+        System.out.println("Student deleted successfully.");
+        logs.add("Deleted student with ID: " + id);
+    }
+
+    // Edit an existing student's data
+    public void editStudent(String id, String name, double score) {
+        Student student = studentMap.get(id);
+        if (student == null) {
+            System.out.println("Student not found.");
+            return;
+        }
+        student.name = name;
+        student.score = score;
+        System.out.println("Student updated successfully.");
+        logs.add("Updated student: " + name + " (ID: " + id + "), New Score: " + score);
+    }
+
+    // View student ranking (sorted by score descending)
+    public void viewRanking() {
+        students.sort(Comparator.comparingDouble(s -> -s.score));
+        for (Student student : students) {
+            System.out.println(student);
+        }
+    }
+
+    // Search for a student by ID
+    public void searchStudent(String id) {
+        Student student = studentMap.get(id);
+        if (student == null) {
+            System.out.println("Student not found.");
+        } else {
+            System.out.println(student);
+            logs.add("Searched for student with ID: " + id);
+        }
+    }
+
+    // Export report to a text file
+    public void exportReport() {
+        try (FileWriter writer = new FileWriter("report.txt")) {
+            writer.write("=== Student Report ===\n");
+            writer.write("Generated at: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "\n\n");
+
+            writer.write("1. Student List (Original Order):\n");
+            for (Student student : students) {
+                writer.write("• " + student.name + ": " + student.score + " (" + student.getRank() + ")\n");
+            }
+
+            students.sort(Comparator.comparingDouble(s -> -s.score));
+            writer.write("\n2. Student List (Sorted by Score):\n");
+            for (Student student : students) {
+                writer.write("• " + student.name + ": " + student.score + " (" + student.getRank() + ")\n");
+            }
+
+            writer.write("\n3. Activity Logs:\n");
+            for (String log : logs) {
+                writer.write("• " + log + "\n");
+            }
+
+            writer.write("\nReport successfully exported to 'report.txt'\n");
+        } catch (IOException e) {
+            System.out.println("Error writing report: " + e.getMessage());
+        }
+    }
+
+    // Export student list to CSV file
+    public void exportToCSV() {
+        try (FileWriter writer = new FileWriter("students.csv")) {
+            writer.write("ID,Name,Score,Rank\n");
+            for (Student student : students) {
+                writer.write(student.id + "," + student.name + "," + student.score + "," + student.getRank() + "\n");
+            }
+            System.out.println("CSV file 'students.csv' exported successfully.");
+            logs.add("Exported student list to CSV file.");
+        } catch (IOException e) {
+            System.out.println("Error exporting CSV: " + e.getMessage());
+        }
+    }
+}
+
 ##  Student Manager - Java Application
 
 ##  Introduction
@@ -133,6 +246,108 @@ Nguyen Trung Tri Tinh – BC00466
 ---
 
 Let me know if you also want a **short CLI usage guide**, or if you'd like to include instructions for creating a `.jar` file or running the app from the terminal.
+
+
+package com.Tinhntt.AssignmentStudent;
+
+import java.util.Scanner;
+
+public class StudentMain {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        StudentManager manager = new StudentManager();
+
+        while (true) {
+            System.out.println("\n=== Student Management System ===");
+            System.out.println("1. Add Student");
+            System.out.println("2. Edit Student");
+            System.out.println("3. Delete Student");
+            System.out.println("4. View Student Ranking");
+            System.out.println("5. Search Student by ID");
+            System.out.println("6. Export Report to TXT File");
+            System.out.println("7. Export Student List to CSV");
+            System.out.println("8. Exit");
+            System.out.print("Choose an option (1-8): ");
+
+            int choice = -1;
+            try {
+                choice = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a number between 1 and 8.");
+                continue;
+            }
+
+            String id, name;
+            double score;
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter Student ID: ");
+                    id = scanner.nextLine();
+                    System.out.print("Enter Student Name: ");
+                    name = scanner.nextLine();
+                    try {
+                        System.out.print("Enter Student Score: ");
+                        score = Double.parseDouble(scanner.nextLine().replace(",", "."));
+                        manager.addStudent(id, name, score);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid score input! Please enter a valid number (e.g., 8.5)");
+                    }
+                    break;
+
+                case 2:
+                    System.out.print("Enter Student ID to Edit: ");
+                    id = scanner.nextLine();
+                    System.out.print("Enter New Name: ");
+                    name = scanner.nextLine();
+                    try {
+                        System.out.print("Enter New Score: ");
+                        score = Double.parseDouble(scanner.nextLine().replace(",", "."));
+                        manager.editStudent(id, name, score);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid score input! Please enter a valid number (e.g., 8.5)");
+                    }
+                    break;
+
+                case 3:
+                    System.out.print("Enter Student ID to Delete: ");
+                    id = scanner.nextLine();
+                    manager.deleteStudent(id);
+                    break;
+
+                case 4:
+                    System.out.println("\n=== Student Ranking (Sorted by Score) ===");
+                    manager.viewRanking();
+                    break;
+
+                case 5:
+                    System.out.print("Enter Student ID to Search: ");
+                    id = scanner.nextLine();
+                    manager.searchStudent(id);
+                    break;
+
+                case 6:
+                    manager.exportReport();
+                    System.out.println("Report has been successfully exported to 'report.txt'.");
+                    break;
+
+                case 7:
+                    manager.exportToCSV();
+                    System.out.println("Student list has been successfully exported to 'students.csv'.");
+                    break;
+
+                case 8:
+                    System.out.println("Exiting program... Goodbye!");
+                    return;
+
+                default:
+                    System.out.println("Invalid option. Please select a number from 1 to 8.");
+                    break;
+            }
+        }
+    }
+}
+
 
 ## Student Management System – Java Console Application
 
